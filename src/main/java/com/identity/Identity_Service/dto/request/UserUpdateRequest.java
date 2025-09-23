@@ -1,22 +1,13 @@
 package com.identity.Identity_Service.dto.request;
 import java.time.*;
 
-import jakarta.validation.constraints.Size;
 
-public class UserCreationRequest{
-    private String username;
-
-    @Size(min = 8, max = 20, message = "password must be 8-20 characters")
+public class UserUpdateRequest{
     private String password;
     private String firstName;
     private String lastName;
     private LocalDate dob;
-    public String getUsername() {
-        return username;
-    }
-    public void setUsername(String username) {
-        this.username = username;
-    }
+
     public String getPassword() {
         return password;
     }
@@ -41,5 +32,5 @@ public class UserCreationRequest{
     public void setDob(LocalDate dob) {
         this.dob = dob;
     }
-   
+        
 }
