@@ -1,7 +1,6 @@
 package com.identity.Identity_Service.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -9,7 +8,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.*;
@@ -17,9 +15,10 @@ import com.identity.Identity_Service.entity.User;
 
 import com.identity.Identity_Service.dto.request.UserCreationRequest;
 import com.identity.Identity_Service.dto.request.UserUpdateRequest;
+import com.identity.Identity_Service.dto.response.APIResponse;
 import com.identity.Identity_Service.service.UserService;
 
-import jakarta.validation.Valid;
+import jakarta.validation.*;
 
 
 @RestController
@@ -28,8 +27,11 @@ public class UserController{
     @Autowired
     private UserService service;
     @PostMapping
-    User create(@RequestBody @Valid UserCreationRequest req){
-        return service.createRequest(req);
+    APIResponse<User> create(@RequestBody @Valid UserCreationRequest req){
+        APIResponse<User> res = new APIResponse<User>();
+        res.setResult(service.createRequest(req));
+
+        return res;
     }
 
     @GetMapping
