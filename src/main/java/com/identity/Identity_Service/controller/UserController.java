@@ -19,13 +19,18 @@ import com.identity.Identity_Service.dto.response.APIResponse;
 import com.identity.Identity_Service.service.UserService;
 
 import jakarta.validation.*;
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
 
 
 @RestController
 @RequestMapping("/users")
+@RequiredArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
+
 public class UserController{
-    @Autowired
-    private UserService service;
+    UserService service;
     @PostMapping
     APIResponse<User> create(@RequestBody @Valid UserCreationRequest req){
         APIResponse<User> res = new APIResponse<User>();
