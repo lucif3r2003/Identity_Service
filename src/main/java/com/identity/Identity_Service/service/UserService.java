@@ -5,6 +5,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import com.identity.Identity_Service.entity.User;
+import com.identity.Identity_Service.enums.Role;
 import com.identity.Identity_Service.exceptions.AppException;
 import com.identity.Identity_Service.exceptions.ErrorCode;
 import com.identity.Identity_Service.mapper.UserMapper;
@@ -16,6 +17,8 @@ import lombok.experimental.FieldDefaults;
 
 import com.identity.Identity_Service.dto.request.UserCreationRequest;
 import com.identity.Identity_Service.dto.request.UserUpdateRequest;
+import com.identity.Identity_Service.dto.response.APIResponse;
+import com.identity.Identity_Service.dto.response.UserResponse;
 
 import java.util.*;
 
@@ -30,7 +33,7 @@ public class UserService{
     UserMapper mapper;
     
     //create user
-    public User createRequest(UserCreationRequest req){
+    public UserResponse createRequest(UserCreationRequest req){
         try{
             User user = new User();
             
@@ -39,27 +42,38 @@ public class UserService{
             }
 
             user = mapper.toUser(req);
-            PasswordEncoder pEncoder = new BCryptPasswordEncoder(10);
+            PasswordEncoder pEncoder = new BCryptPasswordEncoder(10); 
             user.setPassword(pEncoder.encode(req.getPassword()));
-            return uRepo.save(user);
+
+            HashSet<String> roles = new HashSet<>();
+            roles.add(Role.USER.name());
+            user.setRoles(roles);
+
+            return mapper.toUserResponse(uRepo.save(user));
         } catch(Exception e){
             throw new RuntimeException("Fail to create user");
         }
     }
 
-    public List<User> getUser(){
-        return uRepo.findAll();
+    public List<UserResponse> getUser(){
+        List<User> users = uRepo.findAll();
+        List<UserResponse> userResponses = new ArrayList<>();
+        for(User user: users){
+            userResponses.add(mapper.toUserResponse(user));
+        }
+        return  userResponses;
     }
-    public User getUser(String id){
-        return uRepo.findById(id)
-            .orElseThrow(() -> new RuntimeException("user not found!"));
+    public UserResponse getUser(String id){
+        return mapper.toUserResponse(uRepo.findById(id)
+            .orElseThrow(() -> new RuntimeException("user not found!")));  
     }
     
-    public User updateUser(String id, UserUpdateRequest req){
+    public UserResponse updateUser(String id, UserUpdateRequest req){
         try {
-            User user = getUser(id);
+            User user = uRepo.findById(id)
+                        .orElseThrow(()-> new RuntimeException("user not found"));
             mapper.updateUser(user, req);
-            return uRepo.save(user);
+            return mapper.toUserResponse( uRepo.save(user));
 
         } catch (Exception e) {
             throw new RuntimeException("cannot update user");

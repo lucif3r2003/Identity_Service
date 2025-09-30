@@ -8,19 +8,16 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import com.identity.Identity_Service.dto.request.AuthenticationRequest;
 import com.identity.Identity_Service.dto.request.IntrospectRequest;
 import com.identity.Identity_Service.dto.response.*;
+import com.identity.Identity_Service.entity.User;
 import com.identity.Identity_Service.exceptions.AppException;
 import com.identity.Identity_Service.exceptions.ErrorCode;
 import com.identity.Identity_Service.repository.UserRepository;
-import com.nimbusds.jose.JOSEException;
-import com.nimbusds.jose.JWSAlgorithm;
-import com.nimbusds.jose.JWSHeader;
-import com.nimbusds.jose.JWSObject;
-import com.nimbusds.jose.JWSVerifier;
-import com.nimbusds.jose.Payload;
+import com.nimbusds.jose.*;
 import com.nimbusds.jose.crypto.MACSigner;
 import com.nimbusds.jose.crypto.MACVerifier;
 import com.nimbusds.jwt.JWTClaimsSet;
@@ -66,7 +63,7 @@ public class AuthenticationService{
         if(!result){
             throw new AppException(ErrorCode.LOGIN_FAILED);
         }
-        var token = genToken(req.getUsername());
+        var token = genToken(user);
 
         return AuthenticationResponse.builder()
                 .token(token)
@@ -74,16 +71,16 @@ public class AuthenticationService{
                 .build();
     }
 
-    private String genToken(String username){
+    private String genToken(User user){
         JWSHeader header = new JWSHeader(JWSAlgorithm.HS512);
         JWTClaimsSet jwtClaimsSet = new JWTClaimsSet.Builder()
-                                        .subject(username)
+                                        .subject(user.getUsername())
                                         .issuer("login")
                                         .issueTime(new Date())
                                         .expirationTime(new Date(
                                                         Instant.now().plus(1, ChronoUnit.HOURS).toEpochMilli()
                                                         ))
-                                        .claim("CustomerCalim", "Custom")
+                                        .claim("scope", buildScope(user))
                                         .build();
         Payload payload = new Payload(jwtClaimsSet.toJSONObject());
         JWSObject jwsObject = new JWSObject(header, payload);
@@ -95,5 +92,15 @@ public class AuthenticationService{
             throw new RuntimeException();
 
         }
+    }
+
+
+    private String buildScope(User user){
+        StringJoiner stringJoiner = new StringJoiner(" ");
+        if(!CollectionUtils.isEmpty(user.getRoles()))
+            user.getRoles().forEach(stringJoiner:: add);
+
+            return stringJoiner.toString();
+        
     }
 }
