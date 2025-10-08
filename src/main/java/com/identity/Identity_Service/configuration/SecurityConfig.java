@@ -24,21 +24,20 @@ import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
-    private final String[] PUBLIC_ENFPOINT ={"/users", "/auth/login", "auth/introspect"} ;
+    private final String[] PUBLIC_ENFPOINT ={ "/auth/login", "auth/introspect"} ;
 
     @Value("${jwt.signerKey}")
     private String signerKey;
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
-        httpSecurity.authorizeRequests(request -> 
+        httpSecurity.authorizeHttpRequests(request -> 
                                     request.requestMatchers(HttpMethod.POST, PUBLIC_ENFPOINT).permitAll()
-                                    .requestMatchers(HttpMethod.GET, "/users").hasRole(Role.ADMIN.name())
                                     .anyRequest().authenticated());
 
         httpSecurity.oauth2ResourceServer(oauth2 ->
                                             oauth2.jwt(jwtConfig -> 
                                             jwtConfig.decoder(jwtDecoders()))
-        
+                                            .authenticationEntryPoint(new JwtAuthenticationEntryPoint())
         );
 
         httpSecurity.csrf(AbstractHttpConfigurer:: disable);

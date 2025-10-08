@@ -1,7 +1,6 @@
 package com.identity.Identity_Service.controller;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -13,7 +12,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.*;
-import com.identity.Identity_Service.entity.User;
 
 import com.identity.Identity_Service.dto.request.UserCreationRequest;
 import com.identity.Identity_Service.dto.request.UserUpdateRequest;
@@ -45,11 +43,14 @@ public class UserController{
 
     @GetMapping
     APIResponse<List<UserResponse>> getUser(){
-
         var auth = SecurityContextHolder.getContext().getAuthentication();
+        //log info nguoi dung
         log.info("Username: {}", auth.getName());
         auth.getAuthorities().forEach(grantedAuthority -> log.info(grantedAuthority.getAuthority()));
-        
+        //xu li phan quyen 
+        if(auth.getAuthorities().stream().noneMatch(a -> a.getAuthority().equals("ROLE_ADMIN"))){
+            throw new AccessDeniedException("You do not have permission!");
+        }
         return APIResponse.<List<UserResponse>>builder()
                       .result(service.getUser())
                       .build();  
